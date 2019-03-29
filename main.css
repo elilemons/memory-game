@@ -69,3 +69,7 @@ html {
 .hide {
   display: none;
 }
+.card.matched {
+  border-color: #CAE2BC;
+  cursor: default;
+}
