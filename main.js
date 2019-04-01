@@ -55,8 +55,6 @@ $(() => {
      */
     constructor(numOfCards) {
       this.numOfCards = numOfCards;
-      this.numOfFlippedCards = 0;
-      this.numOfMatchedCards = 0;
       this.cards = [];
       this.matchedCards = [];
       this.flippedCards = [];
@@ -80,42 +78,50 @@ $(() => {
       // Set up cards
       for (i; i < this.numOfCards; i++) {
         this.cards.push(
-          new Card(i, `${i % 2 ? 'Kitten' : 'Puppy'}`, `${i %2 ? 'http://placekitten.com/80/80' : 'http://place-puppy.com/80x80'}`) // Create the cards
+          new Card(i, `${i % 2 ? 'Kitten' : 'Puppy'}`, `${i % 2 ? 'http://placekitten.com/80/80' : 'http://place-puppy.com/80x80'}`) // Create the cards
         );
       }
     }
 
     /**
-     * Handles the card flip game logic
+     *  Handles the card flip game logic
+     * @param {Card} card The card that is being flipped
      */
     flipCard(card) {
-      console.log('Game\'s card array: ', this.cards);
-      console.log('Game flip card called, card passed in:', card,
-                  '\nIt\'s index: ', card.id);
+      // We don't want to do anything on matched cards
+      if (card.isMatched === true) { return; }
+
+      // Flip the card front or back
       card.isFlipped = !card.isFlipped;
-      this.flippedCards.push(card);
-      console.log('Flipped cards: ', this.flippedCards);
 
-      if (this.flippedCards.length === 2) {
-        this.checkForMatch(this.flippedCards);
-        console.log('Matched Cards: ', this.matchedCards);
-      } else if (this.flippedCards.length > 2) {
-        // this.flipCardsBack(); // TODO make work
-      }
-    }
+      if (card.isFlipped) {
+        // Add card to array of flipped cards
+        this.flippedCards.push(card);
 
-    /**
-     * @returns {Array} Returns an array of flipped cards
-     */
-    getFlippedCards() {
-      let flippedCards = [];
-      for (let card of this.cards) {
-        if (card.isFlipped) {
-          flippedCards.push(card);
+        // Check if two flipped cards match
+        if (this.flippedCards.length === 2) {
+            this.checkForMatch(this.flippedCards);
+        }
+
+        // Flip the first two cards back if we have more than 2
+        if (this.flippedCards.length > 2) {
+          this.flipCardsBack(this.flippedCards);
         }
       }
 
-      return flippedCards;
+      if (!card.isFlipped) {
+        let cardToFlip, i = 0;
+        // Find the card in the flipped cards and remove it, placing it into cardToFlip
+        for (i = 0; i < this.flippedCards.length; i++ ) {
+          if (this.flippedCards[i].id === card.id) {
+            // Splice returns an array, we just want one item
+            cardToFlip = this.flippedCards.splice(i, 1)[0];
+            break; // Again, we just want one item, so we can stop looping on finding and storing a match
+          }
+        }
+        // Within the cards array, find the matching card (id === index), and flip it back
+        this.cards[cardToFlip.id].isFlipped = false;
+      }
     }
 
     /**
@@ -123,24 +129,27 @@ $(() => {
      * @param {Array} cardsToCheck An array of cards to check, expects 2
      */
     checkForMatch(cardsToCheck) {
-      let card1 = cardsToCheck.pop(),
-          card2 = cardsToCheck.pop();
-      if (card1.name === card2.name) {
+      if (cardsToCheck[0].name === cardsToCheck[1].name) {
+        let card1 = cardsToCheck.pop(),
+        card2 = cardsToCheck.pop();
+        this.numOfMatchedCards++;
         card1.isMatched = true;
         card2.isMatched = true;
         this.matchedCards.push(card1, card2);
+        return true;
       }
+      return false;
     }
 
     /**
-     * Flips any flipped cards back on a slight delay
+     * Removes the first two cards in the array, then flips them in the game's array as well
+     * @param {Array} flippedCards An array of flipped cards
      */
-    flipCardsBack() {
-        for (let card of this.cards) {
-          if (card.isFlipped && !card.isMatched) {
-            card.isFlipped = false;
-          }
-        }
+    flipCardsBack(flippedCards) {
+      let card1 = flippedCards.shift(),
+          card2 = flippedCards.shift();
+      this.cards[card1.id].isFlipped = false;
+      this.cards[card2.id].isFlipped = false;
     }
   }
 
