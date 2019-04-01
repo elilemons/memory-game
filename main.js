@@ -3,7 +3,7 @@
 $(() => {
   class UI {
     constructor() {
-      this.game = new Game(10);
+      this.game = new Game(20);
     }
 
     init() {
