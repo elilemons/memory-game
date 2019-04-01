@@ -88,7 +88,6 @@ $(() => {
       let cuteBabes = [];
       kittens.forEach(kitten => cuteBabes.push(kitten));
       puppies.forEach(puppy => cuteBabes.push(puppy));
-      console.log({cuteBabes, kittens, puppies});
 
       // Set up initial cards
       for (i = 0; i < this.numOfCards; i++) {
@@ -140,6 +139,17 @@ $(() => {
     }
 
     /**
+     * Removes the first two cards in the array, then flips them in the game's array as well
+     * @param {Array} flippedCards An array of flipped cards
+     */
+    flipCardsBack(flippedCards) {
+      let card1 = flippedCards.shift(),
+          card2 = flippedCards.shift();
+      this.cards[card1.id].isFlipped = false;
+      this.cards[card2.id].isFlipped = false;
+    }
+
+    /**
      * Checks for a matched set of cards by popping them off the passed in array
      * @param {Array} cardsToCheck An array of cards to check, expects 2
      */
@@ -154,17 +164,6 @@ $(() => {
         return true;
       }
       return false;
-    }
-
-    /**
-     * Removes the first two cards in the array, then flips them in the game's array as well
-     * @param {Array} flippedCards An array of flipped cards
-     */
-    flipCardsBack(flippedCards) {
-      let card1 = flippedCards.shift(),
-          card2 = flippedCards.shift();
-      this.cards[card1.id].isFlipped = false;
-      this.cards[card2.id].isFlipped = false;
     }
   }
 

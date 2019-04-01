@@ -33,17 +33,25 @@ html {
   width: 100%;
   padding: 5px;
   text-align: center;
-}
-
-.button-go {
-  background: #CAE2BC;
   text-transform: uppercase;
   cursor: pointer;
 }
 
-.button-go:hover {
-  background-attachment: #B0BC98;
+.button-go {
+  background: #CAE2BC;
+}
+
+.button-reset {
+  background: #83C5E6;
+}
+.button:hover {
   font-weight: 700;
+}
+.button-go:hover {
+  background: #B0BC98;
+}
+.button-reset:hvoer {
+  background: #4EADDC;
 }
 .card {
   flex: 0 1 85px;
