@@ -3,7 +3,7 @@
 $(() => {
   class UI {
     constructor() {
-      this.game = new Game(12);
+      this.game = new Game(10);
     }
 
     init() {
@@ -20,7 +20,7 @@ $(() => {
                             ${card.id + 1}
                           </div>
                           <div class="card-inner card-inner__back ${!card.isFlipped ? 'hide' : ''}">
-                            <img src="${card.image}" alt="${card.name}" title="Can you find the matching ${card.name}?" />
+                            <img src="${card.image}" alt="${card.name}" title="Can you find the matching ${card.name}?" class="card-image" />
                           </div>
                         </div>`);
 
@@ -73,13 +73,28 @@ $(() => {
      * Creates an array of cards
      */
     createCards() {
-      let i = 0;
+      let i = 1,
+          kittens = [],
+          puppies = [];
 
-      // Set up cards
-      for (i; i < this.numOfCards; i++) {
-        this.cards.push(
-          new Card(i, `${i % 2 ? 'Kitten' : 'Puppy'}`, `${i % 2 ? 'http://placekitten.com/80/80' : 'http://place-puppy.com/80x80'}`) // Create the cards
-        );
+      // This works but I don't want to keep these arrays on the game when there's not even 20 cards
+      for (i; i <= 5; i++) {
+        kittens.push(new Card(undefined, `kitten-${i}`, `/images/kittens/${i}.png`));
+        kittens.push(new Card(undefined ,`kitten-${i}`, `/images/kittens/${i}.png`));
+        puppies.push(new Card(undefined, `puppy-${i}`, `/images/puppies/${i}.png`));
+        puppies.push(new Card(undefined, `puppy-${i}`, `/images/puppies/${i}.png`));
+      }
+
+      let cuteBabes = [];
+      kittens.forEach(kitten => cuteBabes.push(kitten));
+      puppies.forEach(puppy => cuteBabes.push(puppy));
+      console.log({cuteBabes, kittens, puppies});
+
+      // Set up initial cards
+      for (i = 0; i < this.numOfCards; i++) {
+        console.log((i % 5) + 1);
+        cuteBabes[i].id = i;
+        this.cards.push(cuteBabes[i]);
       }
     }
 
