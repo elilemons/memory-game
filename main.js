@@ -4,9 +4,6 @@ $(() => {
   class UI {
     constructor() {
       this.game = new Game(20);
-      this.timer = new Timer();
-      this.timer.start();
-      console.log('timer:', this.timer);
     }
 
     init() {
@@ -45,9 +42,9 @@ $(() => {
     }
 
     setupEventListeners() {
-      $('#buttonStart').on('click', this.startGame);
+      $('#buttonStart').on('click', this.game.startGame);
       $('#buttonReset').on('click', () => {
-        this.game = new Game(20);
+        this.game.resetGame();
         this.setupHTML();
       });
     }
@@ -73,6 +70,8 @@ $(() => {
       this.matchedCards = [];
       this.flippedCards = [];
       this.won = false;
+      this.timer;
+      this.interval;
       this.init();
     }
 
@@ -84,12 +83,49 @@ $(() => {
     }
 
     /**
+     * Starts the timer for the game
+     */
+    startGame() {
+      let hours = 0, minutes = 0, seconds = 0, milliseconds = 0;
+
+      this.interval = setInterval(() => {
+        milliseconds += 5;
+        if (milliseconds >= 999) {
+          milliseconds = milliseconds - 999;
+          seconds += 1;
+
+          if (seconds === 59) {
+            minutes += 1;
+            seconds = 0;
+            if (minutes === 59) {
+              hours += 1;
+              minutes = 0;
+            }
+          }
+        }
+
+        $('#milliseconds').text(milliseconds.toString().padStart(3, '0'));
+        $('#seconds').text(seconds.toString().padStart(2, '0'));
+        $('#minutes').text(minutes.toString().padStart(2, '0'));
+        $('#hours').text(hours.toString().padStart(2, '0'));
+      }, 5);
+    }
+
+    resetGame() {
+      clearInterval(this.interval);
+      console.log('reset called', this.interval);
+      this.init();
+    }
+
+    /**
      * Creates an array of cards
      */
     createCards() {
       let i = 1,
           kittens = [],
           puppies = [];
+
+      this.cards = [];
 
       // This works but I don't want to keep these arrays on the game when there's not even 20 cards
       for (i; i <= 5; i++) {
@@ -200,10 +236,14 @@ $(() => {
   class Timer {
     constructor() {
       this.interval;
+      this.startTime;
     }
+
     start() {
+      // this.startTime = new Date().toLocaleTimeString();
       this.interval = setInterval(() => {
         this.time = new Date().toLocaleTimeString();
+        console.log(this.time);
       }, 1000);
     }
     stop() {

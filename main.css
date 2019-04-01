@@ -50,8 +50,13 @@ html {
 .button-go:hover {
   background: #B0BC98;
 }
-.button-reset:hvoer {
+.button-reset:hover {
   background: #4EADDC;
+}
+.timer {
+  font-family: monospace;
+  font-weight: bold;
+  text-align: center;
 }
 .card {
   flex: 0 1 85px;
