@@ -1,8 +1,9 @@
+/* eslint-disable no-console */
 /* eslint-disable no-undef */
 $(() => {
   class UI {
     constructor() {
-      this.game = new Game(4);
+      this.game = new Game(12);
     }
 
     init() {
@@ -16,7 +17,7 @@ $(() => {
       for (let card of this.game.cards) {
         let cardHTML = $(`<div class="card ${card.isMatched ? 'matched' : ''}">
                           <div class="card-inner card-inner__front ${card.isFlipped ? 'hide' : ''}">
-                            ${card.id}
+                            ${card.id + 1}
                           </div>
                           <div class="card-inner card-inner__back ${!card.isFlipped ? 'hide' : ''}">
                             <img src="${card.image}" alt="${card.name}" title="Can you find the matching ${card.name}?" />
@@ -37,12 +38,13 @@ $(() => {
 
 
     /**
-     * Flips the card
+     * Handles the card flip UI logic
      * @param {Card} card
      */
     flipCard(card) {
-      card.isFlipped = !card.isFlipped;
-      this.setupHTML();
+      // TODO: Animate flipping card
+      this.game.flipCard(card); // Tell the game we're flipping the card
+      this.setupHTML(); // Redraw the cards after the game handles the flip
     }
   }
 
@@ -56,6 +58,8 @@ $(() => {
       this.numOfFlippedCards = 0;
       this.numOfMatchedCards = 0;
       this.cards = [];
+      this.matchedCards = [];
+      this.flippedCards = [];
       this.won = false;
       this.init();
     }
@@ -71,13 +75,32 @@ $(() => {
      * Creates an array of cards
      */
     createCards() {
-      let i = 1;
+      let i = 0;
 
       // Set up cards
-      for (i; i <= this.numOfCards; i++) {
+      for (i; i < this.numOfCards; i++) {
         this.cards.push(
           new Card(i, `${i % 2 ? 'Kitten' : 'Puppy'}`, `${i %2 ? 'http://placekitten.com/80/80' : 'http://place-puppy.com/80x80'}`) // Create the cards
         );
+      }
+    }
+
+    /**
+     * Handles the card flip game logic
+     */
+    flipCard(card) {
+      console.log('Game\'s card array: ', this.cards);
+      console.log('Game flip card called, card passed in:', card,
+                  '\nIt\'s index: ', card.id);
+      card.isFlipped = !card.isFlipped;
+      this.flippedCards.push(card);
+      console.log('Flipped cards: ', this.flippedCards);
+
+      if (this.flippedCards.length === 2) {
+        this.checkForMatch(this.flippedCards);
+        console.log('Matched Cards: ', this.matchedCards);
+      } else if (this.flippedCards.length > 2) {
+        // this.flipCardsBack(); // TODO make work
       }
     }
 
@@ -96,22 +119,28 @@ $(() => {
     }
 
     /**
-     * Checks for a matched set of cards
+     * Checks for a matched set of cards by popping them off the passed in array
+     * @param {Array} cardsToCheck An array of cards to check, expects 2
      */
-    checkForMatch() {
+    checkForMatch(cardsToCheck) {
+      let card1 = cardsToCheck.pop(),
+          card2 = cardsToCheck.pop();
+      if (card1.name === card2.name) {
+        card1.isMatched = true;
+        card2.isMatched = true;
+        this.matchedCards.push(card1, card2);
+      }
     }
 
     /**
      * Flips any flipped cards back on a slight delay
      */
     flipCardsBack() {
-      setTimeout(() => {
         for (let card of this.cards) {
-          if (card.isFlipped) {
+          if (card.isFlipped && !card.isMatched) {
             card.isFlipped = false;
           }
         }
-      }, 3000);
     }
   }
 
