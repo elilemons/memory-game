@@ -4,6 +4,9 @@ $(() => {
   class UI {
     constructor() {
       this.game = new Game(20);
+      this.timer = new Timer();
+      this.timer.start();
+      console.log('timer:', this.timer);
     }
 
     init() {
@@ -11,9 +14,13 @@ $(() => {
     }
 
     setupHTML() {
+      this.setupCardsHTML();
+      this.setupEventListeners();
+    }
+
+    setupCardsHTML() {
       $('.card-grid').empty();
 
-      // Write HTML
       for (let card of this.game.cards) {
         let cardHTML = $(`<div class="card ${card.isMatched ? 'matched' : ''}">
                           <div class="card-inner card-inner__front ${card.isFlipped ? 'hide' : ''}">
@@ -31,16 +38,19 @@ $(() => {
           this.flipCard(card);
         });
       }
+    }
 
-      // Set up event listeners
+    setupTimerHTML() {
+      // TODO
+    }
+
+    setupEventListeners() {
       $('#buttonStart').on('click', this.startGame);
       $('#buttonReset').on('click', () => {
         this.game = new Game(20);
         this.setupHTML();
       });
     }
-
-
     /**
      * Handles the card flip UI logic
      * @param {Card} card
@@ -187,6 +197,19 @@ $(() => {
     }
   }
 
+  class Timer {
+    constructor() {
+      this.interval;
+    }
+    start() {
+      this.interval = setInterval(() => {
+        this.time = new Date().toLocaleTimeString();
+      }, 1000);
+    }
+    stop() {
+      clearInterval(this.interval);
+    }
+  }
   let ui = new UI();
   ui.init();
 });
