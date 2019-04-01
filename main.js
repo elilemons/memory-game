@@ -34,6 +34,10 @@ $(() => {
 
       // Set up event listeners
       $('#buttonStart').on('click', this.startGame);
+      $('#buttonReset').on('click', () => {
+        this.game = new Game(20);
+        this.setupHTML();
+      });
     }
 
 
@@ -91,7 +95,6 @@ $(() => {
 
       // Set up initial cards
       for (i = 0; i < this.numOfCards; i++) {
-        console.log((i % 5) + 1);
         cuteBabes[i].id = i;
         this.cards.push(cuteBabes[i]);
       }
