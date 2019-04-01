@@ -1,12 +1,11 @@
+/* eslint-disable no-undef */
 $(() => {
-  function testLogs(options) {
-    console.log(options);
-  }
-
   class UI {
     constructor() {
-      this.grid = new CardGrid(4);
-      this.game = new Game(this.grid.cards);
+      this.game = new Game(4);
+    }
+
+    init() {
       this.setupHTML();
     }
 
@@ -14,13 +13,13 @@ $(() => {
       $('.card-grid').empty();
 
       // Write HTML
-      for (let card of this.grid.cards) {
-        let cardHTML = $(`<div class="card ${card.isMatched ? 'matched' :  ''}">
+      for (let card of this.game.cards) {
+        let cardHTML = $(`<div class="card ${card.isMatched ? 'matched' : ''}">
                           <div class="card-inner card-inner__front ${card.isFlipped ? 'hide' : ''}">
                             ${card.id}
                           </div>
                           <div class="card-inner card-inner__back ${!card.isFlipped ? 'hide' : ''}">
-                            <img src="${card.image.source}" alt="${card.image.name}" title="Can you find the matching ${card.image.name}?" />
+                            <img src="${card.image}" alt="${card.name}" title="Can you find the matching ${card.name}?" />
                           </div>
                         </div>`);
 
@@ -28,118 +27,111 @@ $(() => {
 
         // Set up event listeners on each card
         $(cardHTML).on('click', () => {
-          if (card.isMatched) { return; }
-          // Let game update the card array then redraw the HTML
-          this.game.flipCard(card);
-          testLogs({functionName: 'card click', params: {
-            cards: this.grid.cards
-          }});
-          this.setupHTML();
+          this.flipCard(card);
         });
       }
 
       // Set up event listeners
-      $('#buttonStart').on('click', this.game.startGame);
+      $('#buttonStart').on('click', this.startGame);
+    }
+
+
+    /**
+     * Flips the card
+     * @param {Card} card
+     */
+    flipCard(card) {
+      card.isFlipped = !card.isFlipped;
+      this.setupHTML();
     }
   }
 
- class Game {
-   constructor(cardArray) {
-     this.cardArray = cardArray;
-     this.cardsMatched = 0;
-     this.cardsFlipped = [];
-     this.maxCardsFlipped = 2;
-   }
-
-   startGame() {
-    // Scroll to the bottom
-    $('html, body').animate({
-      scrollTop: $(document).height()-$(window).height()},
-      1400,
-   );
-  }
-
-  flipCard(card) {
-    card.isFlipped = !card.isFlipped;
-
-    // If the card has been flipped,
-    if (card.isFlipped) {
-      this.cardsFlipped.push(card);
-    }
-
-    this.cardArray.splice(card.id - 1, 1, card);
-
-    if (this.cardsFlipped.length === 2) {
-      if (this.hasMatch()) {
-        testLogs({
-          functionName: 'Game.flipCard()',
-          params: {
-            'cards': this.cardArray,
-            'flipped': this.cardsFlipped,
-            'numMatched': this.cardsMatched
-          },
-          message: 'Found a match'
-        })
-        this.cardsMatched += 2;
-
-        if (this.hasWon()) {
-          alert("You've won!");
-        } else {
-          this.cardArray[this.cardsFlipped[0].id - 1].isMatched = true;
-          this.cardArray[this.cardsFlipped[1].id - 1].isMatched = true;
-        }
-      }
-    }
-  }
-
-  hasMatch() {
-    console.log('looking for a match');
-    testLogs({ functionName: 'game.hasMatch', params: {
-      allCards: this.cardArray,
-      cardsFlipped: this.cardsFlipped,
-    }});
-    return this.cardsFlipped[0].image.name === this.cardsFlipped[1].image.name;
-  }
-
-  hasWon() {
-     return this.cardsMatched === this.cardArray.length;
-   }
- }
-
-  class CardGrid {
+  class Game {
+    /**
+     * Tracks the progress of the game and manages the logic for it
+     * @param {Number} numOfCards The number of cards the game should create
+     */
     constructor(numOfCards) {
       this.numOfCards = numOfCards;
+      this.numOfFlippedCards = 0;
+      this.numOfMatchedCards = 0;
       this.cards = [];
+      this.won = false;
       this.init();
     }
 
+    /**
+     * Initializes the game
+     */
     init() {
+      this.createCards();
+    }
+
+    /**
+     * Creates an array of cards
+     */
+    createCards() {
       let i = 1;
 
       // Set up cards
       for (i; i <= this.numOfCards; i++) {
         this.cards.push(
-          new Card(i, new Image('Kitten', 'http://placekitten.com/80/80')) // Create the cards
+          new Card(i, `${i % 2 ? 'Kitten' : 'Puppy'}`, `${i %2 ? 'http://placekitten.com/80/80' : 'http://place-puppy.com/80x80'}`) // Create the cards
         );
       }
+    }
+
+    /**
+     * @returns {Array} Returns an array of flipped cards
+     */
+    getFlippedCards() {
+      let flippedCards = [];
+      for (let card of this.cards) {
+        if (card.isFlipped) {
+          flippedCards.push(card);
+        }
+      }
+
+      return flippedCards;
+    }
+
+    /**
+     * Checks for a matched set of cards
+     */
+    checkForMatch() {
+    }
+
+    /**
+     * Flips any flipped cards back on a slight delay
+     */
+    flipCardsBack() {
+      setTimeout(() => {
+        for (let card of this.cards) {
+          if (card.isFlipped) {
+            card.isFlipped = false;
+          }
+        }
+      }, 3000);
     }
   }
 
   class Card {
-    constructor(id, image) {
+    /**
+     * Represents a card with a front and back side. Tracks whether it is flipped (showing its backside) and
+     * whether it has been matched with its companion card
+     * @param {Number} id The ID of a card
+     * @param {String} name The name of a card
+     * @param {String} image The URL where the image of a card can be found
+     */
+    constructor(id, name, image) {
       this.id = id;
+      this.name = name;
       this.image = image;
       this.isFlipped = false;
       this.isMatched = false;
     }
   }
 
-  class Image {
-    constructor(name, source) {
-      this.name = name;
-      this.source = source;
-    }
-  }
-
   let ui = new UI();
+  ui.init();
 });

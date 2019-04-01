@@ -72,4 +72,5 @@ html {
 .card.matched {
   border-color: #CAE2BC;
   cursor: default;
+  opacity: .4;
 }
