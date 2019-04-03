@@ -2,7 +2,7 @@
 $(() => {
   class UI {
     constructor() {
-      this.game = new Game();
+      this.game = new Game(10);
     }
 
     /**
@@ -10,7 +10,7 @@ $(() => {
      */
     init() {
       this.setupHTML();
-      $('.card-grid').hide();
+      // $('.card-grid').hide();
     }
 
     /**
@@ -28,9 +28,9 @@ $(() => {
       $('.card-grid').empty();
 
       for (let card of this.game.cards) {
-        let cardHTML = $(`<div class="card ${card.isMatched ? 'matched' : ''}">
+        let cardHTML = $(`<div class="card ${card.isMatched ? 'matched' : ''}" style="order: ${card.order || '0'}">
                           <div class="card-inner card-inner__front ${card.isFlipped ? 'hide' : ''}">
-                            ${card.id + 1}
+                            ${card.id}
                           </div>
                           <div class="card-inner card-inner__back ${!card.isFlipped ? 'hide' : ''}">
                             <img src="${card.image}" alt="${card.name}" title="Can you find the matching ${card.name}?" class="card-image" />
@@ -51,7 +51,7 @@ $(() => {
      */
     setupEventListeners() {
       $('#buttonStart').on('click', () => {
-        $('.card-grid').slideDown();
+        // $('.card-grid').slideDown(); // Commented out while testing
 
         setTimeout(() => {
           this.game.startGame();
@@ -101,9 +101,6 @@ $(() => {
       this.createCards();
     }
 
-    /**
-     * Starts the timer for the game
-     */
     startGame() {
       this.timer.start();
     }
@@ -119,24 +116,29 @@ $(() => {
 
     /**
      * Creates an array of cards
+     *
      */
     createCards() {
       let i = 1,
+          group = 0,
+          groupsOfTwenty = Math.floor(this.numOfCards / 20), // Because we have a possible 20 pairs
           kittens = [],
           puppies = [];
-
       // Empty out all arrays
       this.cards = [];
       this.matchedCards = [];
       this.flippedCards = [];
 
-      // This works but I don't want to keep these arrays on the game when there's not even 20 cards
-      for (i; i <= 5; i++) {
-        kittens.push(new Card(undefined, `kitten-${i}`, `/images/kittens/${i}.png`));
-        kittens.push(new Card(undefined ,`kitten-${i}`, `/images/kittens/${i}.png`));
-        puppies.push(new Card(undefined, `puppy-${i}`, `/images/puppies/${i}.png`));
-        puppies.push(new Card(undefined, `puppy-${i}`, `/images/puppies/${i}.png`));
-      }
+     do {
+        for (i = 1; i <= 5; i++) {
+          kittens.push(new Card(undefined, `kitten-${i}`, `/images/kittens/${i}.png`));
+          kittens.push(new Card(undefined ,`kitten-${i}`, `/images/kittens/${i}.png`));
+          puppies.push(new Card(undefined, `puppy-${i}`, `/images/puppies/${i}.png`));
+          puppies.push(new Card(undefined ,`puppy-${i}`, `/images/puppies/${i}.png`));
+        }
+
+        group++;
+      } while (group < groupsOfTwenty);
 
       let cuteBabes = [];
       kittens.forEach(kitten => cuteBabes.push(kitten));
@@ -144,8 +146,30 @@ $(() => {
 
       // Set up initial cards
       for (i = 0; i < this.numOfCards; i++) {
-        cuteBabes[i].id = i;
+        cuteBabes[i].id = i + 1;
         this.cards.push(cuteBabes[i]);
+      }
+
+      this.shuffleCards();
+    }
+
+    /**
+     * Shuffles the order of the cards
+     */
+    shuffleCards() {
+      let chosenNumbers = [];
+
+      for (let i = 0; i < this.cards.length; i++) {
+        let chosenNumber = Math.floor(Math.random() * this.numOfCards) + 1;
+
+        while (chosenNumbers.indexOf(chosenNumber) > -1) {
+          chosenNumber = Math.floor(Math.random() * this.numOfCards) + 1;
+        }
+
+        if (chosenNumbers.indexOf(chosenNumber) === -1) {
+          this.cards[i].order = chosenNumber;
+          chosenNumbers.push(chosenNumber);
+        }
       }
     }
 
@@ -186,12 +210,7 @@ $(() => {
             break; // Again, we just want one item, so we can stop looping on finding and storing a match
           }
         }
-        // Within the cards array, find the matching card (id === index), and flip it back
-        for (let card of this.cards) {
-          if (card.id === cardToFlip.id) {
-            card.isFlipped = false;
-          }
-        }
+        this.findCardInGameDeck(cardToFlip.id).isFlipped = false;
       }
     }
 
@@ -202,8 +221,8 @@ $(() => {
     flipCardsBack(flippedCards) {
       let card1 = flippedCards.shift(),
           card2 = flippedCards.shift();
-      this.cards[card1.id].isFlipped = false;
-      this.cards[card2.id].isFlipped = false;
+      this.findCardInGameDeck(card1.id).isFlipped = false;
+      this.findCardInGameDeck(card2.id).isFlipped = false;
     }
 
     /**
@@ -230,6 +249,17 @@ $(() => {
         }, 100);
       }
     }
+
+    /**
+     * The game keeps track of the entire deck, so this function lets us search it quickly by card id
+     */
+    findCardInGameDeck(cardId) {
+      for (let card of this.cards) {
+        if (card.id === cardId) {
+          return card;
+        }
+      }
+    }
   }
 
   class Card {
@@ -239,13 +269,15 @@ $(() => {
      * @param {Number} id The ID of a card
      * @param {String} name The name of a card
      * @param {String} image The URL where the image of a card can be found
+     * @param {Number} order The order the card should appear when next to other cards
      */
-    constructor(id, name, image) {
+    constructor(id, name, image, order) {
       this.id = id;
       this.name = name;
       this.image = image;
       this.isFlipped = false;
       this.isMatched = false;
+      this.order = order;
     }
   }
 
