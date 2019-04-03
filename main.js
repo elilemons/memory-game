@@ -1,5 +1,4 @@
-/* eslint-disable no-console */
-/* eslint-disable no-undef */
+/*eslint-env jquery*/
 $(() => {
   class UI {
     constructor() {
@@ -42,12 +41,15 @@ $(() => {
     }
 
     setupEventListeners() {
-      $('#buttonStart').on('click', this.game.startGame);
+      $('#buttonStart').on('click', () => {
+        this.game.startGame();
+      });
       $('#buttonReset').on('click', () => {
         this.game.resetGame();
         this.setupHTML();
       });
     }
+
     /**
      * Handles the card flip UI logic
      * @param {Card} card
@@ -70,8 +72,7 @@ $(() => {
       this.matchedCards = [];
       this.flippedCards = [];
       this.won = false;
-      this.timer;
-      this.interval;
+      this.timer = new Timer();
       this.init();
     }
 
@@ -86,34 +87,11 @@ $(() => {
      * Starts the timer for the game
      */
     startGame() {
-      let hours = 0, minutes = 0, seconds = 0, milliseconds = 0;
-
-      this.interval = setInterval(() => {
-        milliseconds += 5;
-        if (milliseconds >= 999) {
-          milliseconds = milliseconds - 999;
-          seconds += 1;
-
-          if (seconds === 59) {
-            minutes += 1;
-            seconds = 0;
-            if (minutes === 59) {
-              hours += 1;
-              minutes = 0;
-            }
-          }
-        }
-
-        $('#milliseconds').text(milliseconds.toString().padStart(3, '0'));
-        $('#seconds').text(seconds.toString().padStart(2, '0'));
-        $('#minutes').text(minutes.toString().padStart(2, '0'));
-        $('#hours').text(hours.toString().padStart(2, '0'));
-      }, 5);
+      this.timer.start();
     }
 
     resetGame() {
-      clearInterval(this.interval);
-      console.log('reset called', this.interval);
+      this.timer.stop();
       this.init();
     }
 
@@ -125,6 +103,7 @@ $(() => {
           kittens = [],
           puppies = [];
 
+      // Empty this out just in case
       this.cards = [];
 
       // This works but I don't want to keep these arrays on the game when there's not even 20 cards
@@ -234,22 +213,51 @@ $(() => {
   }
 
   class Timer {
-    constructor() {
-      this.interval;
-      this.startTime;
+    constructor() { }
+
+    /**
+     * Starts the timer, updating the HTML
+     */
+    start() {
+      let hours = 0, minutes = 0, seconds = 0, milliseconds = 0;
+      if (!this.interval) {
+        this.interval = setInterval(() => {
+          milliseconds += 5;
+          if (milliseconds >= 999) {
+            milliseconds = milliseconds - 999;
+            seconds += 1;
+
+            if (seconds === 59) {
+              minutes += 1;
+              seconds = 0;
+              if (minutes === 59) {
+                hours += 1;
+                minutes = 0;
+              }
+            }
+          }
+
+          // TODO This should be moved into UI
+          $('#milliseconds').text(milliseconds.toString().padStart(3, '0'));
+          $('#seconds').text(seconds.toString().padStart(2, '0'));
+          $('#minutes').text(minutes.toString().padStart(2, '0'));
+          $('#hours').text(hours.toString().padStart(2, '0'));
+        }, 5);
+      }
     }
 
-    start() {
-      // this.startTime = new Date().toLocaleTimeString();
-      this.interval = setInterval(() => {
-        this.time = new Date().toLocaleTimeString();
-        console.log(this.time);
-      }, 1000);
-    }
     stop() {
-      clearInterval(this.interval);
+      if (this.interval) {
+        clearInterval(this.interval);
+        delete this.interval;
+        $('#milliseconds').text('000');
+        $('#seconds').text('00');
+        $('#minutes').text('00');
+        $('#hours').text('00');
+      }
     }
   }
+
   let ui = new UI();
   ui.init();
 });
