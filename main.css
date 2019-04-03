@@ -36,22 +36,26 @@ html {
   text-transform: uppercase;
   cursor: pointer;
 }
-
+.button:hover {
+  font-weight: 700;
+}
 .button-go {
   background: #CAE2BC;
 }
-
 .button-reset {
   background: #83C5E6;
 }
-.button:hover {
-  font-weight: 700;
+.button-pause {
+  background: #ffc0cb;
 }
 .button-go:hover {
   background: #B0BC98;
 }
 .button-reset:hover {
   background: #4EADDC;
+}
+.button-pause:hover {
+  background: #f3aeba;
 }
 .timer {
   font-family: monospace;

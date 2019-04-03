@@ -28,6 +28,7 @@ $(() => {
       $('.card-grid').empty();
 
       for (let card of this.game.cards) {
+        // <div class="card-inner card-inner__front ${card.isFlipped ? 'hide' : ''}">
         let cardHTML = $(`<div class="card ${card.isMatched ? 'matched' : ''}" style="order: ${card.order || '0'}">
                           <div class="card-inner card-inner__front ${card.isFlipped ? 'hide' : ''}">
                             ${card.id}
@@ -36,12 +37,11 @@ $(() => {
                             <img src="${card.image}" alt="${card.name}" title="Can you find the matching ${card.name}?" class="card-image" />
                           </div>
                         </div>`);
-
         $('.card-grid').append(cardHTML);
 
         // Set up event listeners on each card
         $(cardHTML).on('click', () => {
-          this.flipCard(card);
+            this.flipCard(card, cardHTML);
         });
       }
     }
@@ -74,9 +74,8 @@ $(() => {
      * @param {Card} card
      */
     flipCard(card) {
-      // TODO: Animate flipping card
       this.game.flipCard(card); // Tell the game we're flipping the card
-      this.setupHTML(); // Redraw the cards after the game handles the flip
+      this.setupCardsHTML();
     }
   }
 
