@@ -10,7 +10,7 @@ $(() => {
      */
     init() {
       this.setupHTML();
-      // $('.card-grid').hide();
+      $('.card-grid').hide(); // Commented out while testing
     }
 
     /**
@@ -51,7 +51,7 @@ $(() => {
      */
     setupEventListeners() {
       $('#buttonStart').on('click', () => {
-        // $('.card-grid').slideDown(); // Commented out while testing
+        $('.card-grid').slideDown(); // Commented out while testing
 
         setTimeout(() => {
           this.game.startGame();
