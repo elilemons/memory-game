@@ -2,18 +2,28 @@
 $(() => {
   class UI {
     constructor() {
-      this.game = new Game(20);
+      this.game = new Game();
     }
 
+    /**
+     * Sets up the HTML then hides the grid
+     */
     init() {
       this.setupHTML();
+      $('.card-grid').hide();
     }
 
+    /**
+     * Triggers all of the HTML setup functions
+     */
     setupHTML() {
       this.setupCardsHTML();
       this.setupEventListeners();
     }
 
+    /**
+     * Sets up the HTML for the cards
+     */
     setupCardsHTML() {
       $('.card-grid').empty();
 
@@ -36,16 +46,25 @@ $(() => {
       }
     }
 
-    setupTimerHTML() {
-      // TODO
-    }
-
+    /**
+     * Sets up the event listeners
+     */
     setupEventListeners() {
       $('#buttonStart').on('click', () => {
-        this.game.startGame();
+        $('.card-grid').slideDown();
+
+        setTimeout(() => {
+          this.game.startGame();
+        });
       });
+
+      $('#buttonPause').on('click', () => {
+        this.game.pauseGame();
+      });
+
       $('#buttonReset').on('click', () => {
         this.game.resetGame();
+        $('.card-grid').slideUp();
         this.setupHTML();
       });
     }
@@ -66,12 +85,11 @@ $(() => {
      * Tracks the progress of the game and manages the logic for it
      * @param {Number} numOfCards The number of cards the game should create
      */
-    constructor(numOfCards) {
+    constructor(numOfCards = 20) {
       this.numOfCards = numOfCards;
       this.cards = [];
       this.matchedCards = [];
       this.flippedCards = [];
-      this.won = false;
       this.timer = new Timer();
       this.init();
     }
@@ -90,8 +108,12 @@ $(() => {
       this.timer.start();
     }
 
+    pauseGame() {
+      this.timer.pause();
+    }
+
     resetGame() {
-      this.timer.stop();
+      this.timer.reset();
       this.init();
     }
 
@@ -103,8 +125,10 @@ $(() => {
           kittens = [],
           puppies = [];
 
-      // Empty this out just in case
+      // Empty out all arrays
       this.cards = [];
+      this.matchedCards = [];
+      this.flippedCards = [];
 
       // This works but I don't want to keep these arrays on the game when there's not even 20 cards
       for (i; i <= 5; i++) {
@@ -136,13 +160,14 @@ $(() => {
       // Flip the card front or back
       card.isFlipped = !card.isFlipped;
 
-      if (card.isFlipped) {
+      if (card.isFlipped) { // If we are flipping the card to its image, check for matches
         // Add card to array of flipped cards
         this.flippedCards.push(card);
 
         // Check if two flipped cards match
         if (this.flippedCards.length === 2) {
             this.checkForMatch(this.flippedCards);
+            this.checkForWin();
         }
 
         // Flip the first two cards back if we have more than 2
@@ -151,7 +176,7 @@ $(() => {
         }
       }
 
-      if (!card.isFlipped) {
+      if (!card.isFlipped) { // If we are flipping the card back to its front, make sure the appropiate arrays are updated
         let cardToFlip, i = 0;
         // Find the card in the flipped cards and remove it, placing it into cardToFlip
         for (i = 0; i < this.flippedCards.length; i++ ) {
@@ -162,7 +187,11 @@ $(() => {
           }
         }
         // Within the cards array, find the matching card (id === index), and flip it back
-        this.cards[cardToFlip.id].isFlipped = false;
+        for (let card of this.cards) {
+          if (card.id === cardToFlip.id) {
+            card.isFlipped = false;
+          }
+        }
       }
     }
 
@@ -185,13 +214,21 @@ $(() => {
       if (cardsToCheck[0].name === cardsToCheck[1].name) {
         let card1 = cardsToCheck.pop(),
         card2 = cardsToCheck.pop();
-        this.numOfMatchedCards++;
         card1.isMatched = true;
         card2.isMatched = true;
         this.matchedCards.push(card1, card2);
         return true;
       }
       return false;
+    }
+
+    checkForWin() {
+      if (this.matchedCards.length === this.cards.length) {
+        this.pauseGame();
+        setTimeout(() => {
+          alert(`You've won with a time of: ${this.timer.getFullTimerString()}`);
+        }, 100);
+      }
     }
   }
 
@@ -213,48 +250,71 @@ $(() => {
   }
 
   class Timer {
-    constructor() { }
+    /**
+     * A simple timer that updates the timer in the HTML
+     */
+    constructor() {
+      this.hours = 0;
+      this.minutes = 0;
+      this.seconds = 0;
+      this.milliseconds = 0;
+    }
 
     /**
      * Starts the timer, updating the HTML
      */
     start() {
-      let hours = 0, minutes = 0, seconds = 0, milliseconds = 0;
       if (!this.interval) {
         this.interval = setInterval(() => {
-          milliseconds += 5;
-          if (milliseconds >= 999) {
-            milliseconds = milliseconds - 999;
-            seconds += 1;
+          this.milliseconds += 5;
+          if (this.milliseconds >= 999) {
+            this.milliseconds = this.milliseconds - 999;
+            this.seconds += 1;
 
-            if (seconds === 59) {
-              minutes += 1;
-              seconds = 0;
-              if (minutes === 59) {
-                hours += 1;
-                minutes = 0;
+            if (this.seconds === 59) {
+              this.minutes += 1;
+              this.seconds = 0;
+              if (this.minutes === 59) {
+                this.hours += 1;
+                this.minutes = 0;
               }
             }
           }
-
-          // TODO This should be moved into UI
-          $('#milliseconds').text(milliseconds.toString().padStart(3, '0'));
-          $('#seconds').text(seconds.toString().padStart(2, '0'));
-          $('#minutes').text(minutes.toString().padStart(2, '0'));
-          $('#hours').text(hours.toString().padStart(2, '0'));
+          this.setupTimerHTML();
         }, 5);
       }
     }
 
-    stop() {
+    pause() {
       if (this.interval) {
         clearInterval(this.interval);
         delete this.interval;
-        $('#milliseconds').text('000');
-        $('#seconds').text('00');
-        $('#minutes').text('00');
-        $('#hours').text('00');
       }
+    }
+
+    reset() {
+      this.pause();
+      this.hours = 0;
+      this.minutes = 0;
+      this.seconds = 0;
+      this.milliseconds = 0;
+
+      this.setupTimerHTML();
+    }
+
+    setupTimerHTML() {
+      $('#milliseconds').text(this.getTimeString(this.milliseconds, 3));
+      $('#seconds').text(this.getTimeString(this.seconds, 2));
+      $('#minutes').text(this.getTimeString(this.minutes, 2));
+      $('#hours').text(this.getTimeString(this.hours, 2));
+    }
+
+    getTimeString(timeType, zeroPadStart) {
+      return timeType.toString().padStart(zeroPadStart, '0');
+    }
+
+    getFullTimerString() {
+      return `${this.getTimeString(this.hours, 2)}:${this.getTimeString(this.minutes, 2)}:${this.getTimeString(this.seconds, 2)}:${this.getTimeString(this.milliseconds, 3)}`;
     }
   }
 
