@@ -40,7 +40,9 @@ html {
 .button-go {
   background: #CAE2BC;
 }
-
+.button-pause {
+  background: #F694C1;
+}
 .button-reset {
   background: #83C5E6;
 }
@@ -49,6 +51,9 @@ html {
 }
 .button-go:hover {
   background: #B0BC98;
+}
+.button-pause:hover {
+  background: #CA7A9E;
 }
 .button-reset:hover {
   background: #4EADDC;
